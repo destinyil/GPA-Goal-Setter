@@ -1,0 +1,24 @@
+from flask import Flask, render_template, request
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/calculate', methods=['POST'])
+def calculate():
+    current_gpa = float(request.form['current_gpa'])
+    current_credits = int(request.form['current_credits'])
+    target_gpa = float(request.form['target_gpa'])
+    new_credits = int(request.form['new_credits'])
+    
+    total_quality_points = current_gpa * current_credits
+    target_quality_points = target_gpa * (current_credits + new_credits)
+    needed_quality_points = target_quality_points - total_quality_points
+    needed_gpa = needed_quality_points / new_credits
+
+    return render_template('result.html', needed_gpa=needed_gpa)
+
+if __name__ == '__main__':
+    app.run(debug=True)
