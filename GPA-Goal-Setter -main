@@ -1,24 +1,97 @@
-from flask import Flask, render_template, request
+def get_grade_value(letter_grade):
+    # This function converts a letter grade to its corresponding GPA value
+    grade_scale = {
+        'A': 4.0,
+        'A-': 3.7,
+        'B+': 3.3,
+        'B': 3.0,
+        'B-': 2.7,
+        'C+': 2.3,
+        'C': 2.0,
+        'C-': 1.7,
+        'D+': 1.3,
+        'D': 1.0,
+        'D-': 0.7,
+        'F': 0.0
+    }
+    return grade_scale.get(letter_grade.upper(), None)
 
-app = Flask(__name__)
+def get_letter_grade(value):
+    # This function converts a GPA value back to a letter grade
+    if value >= 4.0:
+        return 'A'
+    elif value >= 3.7:
+        return 'A-'
+    elif value >= 3.3:
+        return 'B+'
+    elif value >= 3.0:
+        return 'B'
+    elif value >= 2.7:
+        return 'B-'
+    elif value >= 2.3:
+        return 'C+'
+    elif value >= 2.0:
+        return 'C'
+    elif value >= 1.7:
+        return 'C-'
+    elif value >= 1.3:
+        return 'D+'
+    elif value >= 1.0:
+        return 'D'
+    elif value >= 0.7:
+        return 'D-'
+    else:
+        return 'F'
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/calculate', methods=['POST'])
-def calculate():
-    current_gpa = float(request.form['current_gpa'])
-    current_credits = int(request.form['current_credits'])
-    target_gpa = float(request.form['target_gpa'])
-    new_credits = int(request.form['new_credits'])
-    
+def calculate_required_gpa(current_gpa, desired_gpa, current_credits, new_credits):
+    # This function calculates the GPA needed in new classes to achieve the desired GPA
     total_quality_points = current_gpa * current_credits
-    target_quality_points = target_gpa * (current_credits + new_credits)
+    target_quality_points = desired_gpa * (current_credits + new_credits)
     needed_quality_points = target_quality_points - total_quality_points
     needed_gpa = needed_quality_points / new_credits
+    return needed_gpa
 
-    return render_template('result.html', needed_gpa=needed_gpa)
+def main():
+    print("Welcome to the GPA Goal Calculator!")
 
-if __name__ == '__main__':
-    app.run(debug=True)
+    # Prompt the user to enter their current GPA, desired GPA, completed credits, and new classes
+    try:
+        current_gpa = float(input("Enter your current GPA: "))
+        desired_gpa = float(input("Enter your desired GPA: "))
+        current_credits = int(input("Enter the number of credits you have completed: "))
+        new_classes = int(input("Enter the number of new classes you are taking: "))
+    except ValueError:
+        print("Invalid input. Please enter numeric values for GPA and number of classes.")
+        return
+
+    # Initialize variables to store total new credits and grades
+    new_credits = 0
+    new_grades = []
+
+    # Loop through each new class to get the grade and credits
+    for i in range(new_classes):
+        while True:
+            letter_grade = input(f"Enter the letter grade for class {i + 1}: ")
+            grade_value = get_grade_value(letter_grade)
+            if grade_value is not None:
+                new_grades.append(grade_value)
+                break
+            else:
+                print("Invalid grade. Please enter a valid letter grade (e.g., A, B+, C-).")
+
+        while True:
+            try:
+                credits = int(input(f"Enter the number of credits for class {i + 1}: "))
+                new_credits += credits
+                break
+            except ValueError:
+                print("Invalid input. Please enter a numeric value for credits.")
+
+    # Calculate the required GPA for the new classes to achieve the desired GPA
+    needed_gpa = calculate_required_gpa(current_gpa, desired_gpa, current_credits, new_credits)
+    needed_letter_grade = get_letter_grade(needed_gpa)
+    print(f"\nTo achieve your desired GPA of {desired_gpa}, you need to average a GPA of {needed_gpa:.2f}, which is equivalent to a letter grade of {needed_letter_grade}, in your new classes.")
+
+if __name__ == "__main__":
+    # Entry point of the script, calling the main function
+    main()
